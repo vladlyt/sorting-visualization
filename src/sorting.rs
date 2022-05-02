@@ -5,6 +5,8 @@ pub enum SortingStateEnum {
     FREE,
     COMPARE,
     SWAP,
+    LEFT,
+    RIGHT,
 }
 
 #[derive(Clone, Copy)]
@@ -51,6 +53,8 @@ pub trait Sorter {
 pub struct SortModel {
     pub current_state: SortingState,
     pub states: Vec<SortingState>,
+    pub left: Option<usize>,
+    pub right: Option<usize>,
 }
 
 impl SortModel {
@@ -63,6 +67,8 @@ impl SortModel {
         Self {
             current_state,
             states: Vec::new(),
+            left: None,
+            right: None,
         }
     }
 
@@ -71,6 +77,13 @@ impl SortModel {
         self.states[state_index][left].state = SortingStateEnum::COMPARE;
         self.states[state_index][right].state = SortingStateEnum::COMPARE;
         self.current_state[left] > self.current_state[right]
+    }
+
+    pub fn value_is_greater_or_equal(&mut self, left: usize, right: usize) -> bool {
+        let state_index = self.add_new_state();
+        self.states[state_index][left].state = SortingStateEnum::COMPARE;
+        self.states[state_index][right].state = SortingStateEnum::COMPARE;
+        self.current_state[left] >= self.current_state[right]
     }
 
     pub fn swap_values(&mut self, left: usize, right: usize) {
@@ -94,12 +107,31 @@ impl SortModel {
                 .map(|v| SortingValue::new(v.value))
                 .collect()
         );
+        let new_state_index = self.states.len() - 1;
+
+        if let Some(left) = self.left {
+            self.states[new_state_index][left].state = SortingStateEnum::LEFT;
+        }
+        if let Some(right) = self.right {
+            self.states[new_state_index][right].state = SortingStateEnum::RIGHT;
+        }
+
         self.states.len() - 1
     }
 
     pub fn compare_index(&mut self, index: usize) {
         let state_index = self.add_new_state();
         self.states[state_index][index].state = SortingStateEnum::COMPARE;
+    }
+
+    pub fn set_left_right(&mut self, left: usize, right: usize) {
+        self.left = Some(left);
+        self.right = Some(right);
+    }
+
+    pub fn unset_left_right(&mut self) {
+        self.left = None;
+        self.right = None;
     }
 
     pub fn complete(&mut self) {

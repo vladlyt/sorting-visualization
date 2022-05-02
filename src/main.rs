@@ -8,13 +8,15 @@ use rand::prelude::SliceRandom;
 use crate::sorting::Sorter;
 use crate::bubble_sort::BubbleSort;
 use crate::merge_sort::MergeSort;
+use crate::quicksort::QuickSort;
 
 mod lib;
 mod sorting;
 mod bubble_sort;
 mod merge_sort;
+mod quicksort;
 
-const N: i32 = 200;
+const N: i32 = 50;
 
 
 struct Model {
@@ -76,7 +78,7 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
 fn model(app: &App) -> Model {
     app.new_window().event(event).view(view).build().unwrap();
 
-    let states = MergeSort::new(lib::tests::shuffled_vec(N)).sort().to_vec();
+    let states = QuickSort::new(lib::tests::shuffled_vec(N)).sort().to_vec();
 
     Model {
         states,
@@ -115,6 +117,8 @@ fn view(app: &App, model: &Model, frame: Frame) {
                 sorting::SortingStateEnum::FREE => named::DARKGREY,
                 sorting::SortingStateEnum::COMPARE => named::LIGHTGREEN,
                 sorting::SortingStateEnum::SWAP => named::TOMATO,
+                sorting::SortingStateEnum::LEFT => named::YELLOW,
+                sorting::SortingStateEnum::RIGHT => named::PURPLE,
             }
         );
     }
