@@ -5,10 +5,11 @@ use std::time::Duration;
 use nannou::winit::event::VirtualKeyCode;
 use palette::named;
 use rand::prelude::SliceRandom;
-use crate::sorting::Sorter;
+use crate::sorting::{Sorter, SortingState};
 use crate::bubble_sort::BubbleSort;
 use crate::merge_sort::MergeSort;
 use crate::quicksort::QuickSort;
+use rand::Rng;
 
 mod lib;
 mod sorting;
@@ -16,13 +17,14 @@ mod bubble_sort;
 mod merge_sort;
 mod quicksort;
 
-const N: i32 = 50;
+const MAX_NUMBER: u32 = 200;
 
 
 struct Model {
-    states: Vec<sorting::SortingState>,
+    states: Vec<SortingState>,
     index: usize,
     keep_rolling: bool,
+    n: u32,
 }
 
 
@@ -45,6 +47,14 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
                 }
                 VirtualKeyCode::Space => {
                     model.keep_rolling = !model.keep_rolling;
+                }
+                VirtualKeyCode::R => {
+                    let mut rng = rand::thread_rng();
+                    let n = rng.gen::<u32>() % MAX_NUMBER;
+                    model.states = get_states(SortsEnum::QuickSort, n);
+                    model.index = 0;
+                    model.keep_rolling = false;
+                    model.n = n;
                 }
                 _ => {}
             }
@@ -75,15 +85,33 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
     }
 }
 
+
+enum SortsEnum {
+    BubbleSort,
+    MergeSort,
+    QuickSort,
+}
+
+
+fn get_states(sort: SortsEnum, n: u32) -> Vec<SortingState> {
+    match sort {
+        SortsEnum::BubbleSort => { BubbleSort::new(lib::tests::shuffled_vec(n)).sort().to_vec() }
+        SortsEnum::MergeSort => { MergeSort::new(lib::tests::shuffled_vec(n)).sort().to_vec() }
+        SortsEnum::QuickSort => { QuickSort::new(lib::tests::shuffled_vec(n)).sort().to_vec() }
+    }
+}
+
+
 fn model(app: &App) -> Model {
     app.new_window().event(event).view(view).build().unwrap();
 
-    let states = QuickSort::new(lib::tests::shuffled_vec(N)).sort().to_vec();
+    let states = get_states(SortsEnum::BubbleSort, 20);
 
     Model {
         states,
         index: 0,
         keep_rolling: false,
+        n: 20,
     }
 }
 
@@ -103,8 +131,8 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     let win: Rect<f32> = app.window_rect();
 
-    let width_of_rect: f32 = win.w() / N as f32;
-    let height_of_rect: f32 = win.h() / N as f32;
+    let width_of_rect: f32 = win.w() / model.n as f32;
+    let height_of_rect: f32 = win.h() / model.n as f32;
 
     for (i, val) in model.states[model.index].iter().enumerate() {
         let r = Rect::from_w_h(width_of_rect, height_of_rect * (val.value as f32))

@@ -5,7 +5,7 @@ pub struct MergeSort {
 }
 
 impl MergeSort {
-    pub fn new(v: Vec<i32>) -> Self {
+    pub fn new(v: Vec<u32>) -> Self {
         Self {
             sorter: SortModel::new(v),
         }
@@ -16,11 +16,11 @@ impl MergeSort {
             return;
         }
 
-        let mut left: Vec<i32> = self.sorter.current_state[0..self.sorter.current_state.len() / 2]
+        let mut left: Vec<u32> = self.sorter.current_state[0..self.sorter.current_state.len() / 2]
             .iter()
             .map(|v| v.value)
             .collect();
-        let mut right: Vec<i32> = self.sorter.current_state[self.sorter.current_state.len() / 2..self.sorter.current_state.len()]
+        let mut right: Vec<u32> = self.sorter.current_state[self.sorter.current_state.len() / 2..self.sorter.current_state.len()]
             .iter()
             .map(|v| v.value)
             .collect();

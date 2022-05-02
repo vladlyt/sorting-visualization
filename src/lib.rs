@@ -28,8 +28,8 @@ pub mod tests {
     //     v
     // }
 
-    pub fn shuffled_vec(n: i32) -> Vec<i32> {
-        let mut vec: Vec<i32> = (1..(n + 1)).collect();
+    pub fn shuffled_vec(n: u32) -> Vec<u32> {
+        let mut vec: Vec<u32> = (1..(n + 1)).collect();
         vec.shuffle(&mut rand::thread_rng());
         vec
     }

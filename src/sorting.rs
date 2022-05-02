@@ -11,7 +11,7 @@ pub enum SortingStateEnum {
 
 #[derive(Clone, Copy)]
 pub struct SortingValue {
-    pub value: i32,
+    pub value: u32,
     pub state: SortingStateEnum,
 }
 
@@ -36,7 +36,7 @@ impl Ord for SortingValue {
 }
 
 impl SortingValue {
-    pub fn new(value: i32) -> Self {
+    pub fn new(value: u32) -> Self {
         Self {
             value,
             state: SortingStateEnum::FREE,
@@ -58,7 +58,7 @@ pub struct SortModel {
 }
 
 impl SortModel {
-    pub fn new(v: Vec<i32>) -> Self {
+    pub fn new(v: Vec<u32>) -> Self {
         let current_state = v
             .iter()
             .map(|value| SortingValue::new(*value))

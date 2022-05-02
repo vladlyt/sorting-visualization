@@ -6,7 +6,7 @@ pub struct QuickSort {
 }
 
 impl QuickSort {
-    pub fn new(v: Vec<i32>) -> Self {
+    pub fn new(v: Vec<u32>) -> Self {
         Self {
             sorter: SortModel::new(v),
         }
