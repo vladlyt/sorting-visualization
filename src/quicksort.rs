@@ -1,5 +1,4 @@
-use crate::sorting::{SortModel, SortingState, Sorter, SortingValue};
-
+use crate::sorting::{Sorter, SortingState, SortingValue, SortModel};
 
 pub struct QuickSort {
     sorter: SortModel,
@@ -47,9 +46,62 @@ impl QuickSort {
 
 impl Sorter for QuickSort {
     fn sort(&mut self) -> &mut Vec<SortingState> {
-        self.quicksort(0, self.sorter.current_state.len() - 1);
-        self.sorter.complete();
+        if self.sorter.current_state.len() != 0 {
+            self.quicksort(0, self.sorter.current_state.len() - 1);
+            self.sorter.complete();
+        }
         &mut self.sorter.states
+    }
+}
+
+
+#[cfg(test)]
+pub mod tests {
+    use crate::*;
+    use crate::utils::*;
+
+    #[test]
+    fn quick_sort_unsorted_test() {
+        let mut to_sort_slice = vec![10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+
+        let mut sorter = QuickSort::new(to_sort_slice);
+        let states = sorter.sort();
+
+        assert!(states.len() > 0);
+        assert!(is_sorted(&states[states.len() - 1]));
+    }
+
+    #[test]
+    fn quick_sort_sorted_test() {
+        let mut to_sort_slice = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+        let mut sorter = QuickSort::new(to_sort_slice);
+        let states = sorter.sort();
+
+        assert!(states.len() > 0);
+        assert!(is_sorted(&states[states.len() - 1]));
+    }
+
+    #[test]
+    fn quick_sort_empty_test() {
+        let mut to_sort_slice = vec![];
+
+        let mut sorter = QuickSort::new(to_sort_slice);
+        let states = sorter.sort();
+
+        assert!(states.len() == 0);
+    }
+
+    #[test]
+    fn quick_sort_random_test() {
+        for _ in 0..10 {
+            let mut to_sort_slice = random_vec(30);
+            let mut sorter = QuickSort::new(to_sort_slice);
+            let states = sorter.sort();
+
+            assert!(states.len() > 0);
+            assert!(is_sorted(&states[states.len() - 1]));
+        }
     }
 }
 
