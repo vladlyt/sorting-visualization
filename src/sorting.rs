@@ -1,13 +1,13 @@
 use std::cmp::Ordering;
+use std::ops::Index;
 
 #[derive(Clone, Copy)]
 pub enum SortingStateEnum {
     FREE,
     COMPARE,
     SWAP,
-    COMPLETE,
-    LEFT,
-    RIGHT,
+    CHECKING,
+    COMPLETED,
 }
 
 pub type SortingState = Vec<SortingValue>;
@@ -55,8 +55,7 @@ pub trait Sorter {
 pub struct SortModel {
     current_state: SortingState,
     states: Vec<SortingState>,
-    left: Option<usize>,
-    right: Option<usize>,
+    boundaries: Option<(usize, usize)>,
 }
 
 impl SortModel {
@@ -75,19 +74,29 @@ impl SortModel {
         Self {
             current_state,
             states: vec![current_state2],
-            left: None,
-            right: None,
+            boundaries: None,
         }
     }
 
+    pub fn compare<F>(&mut self, left: usize, right: usize, compare_func: F) -> bool
+        where F: Fn(SortingValue, SortingValue) -> bool {
+        let state_index = self.add_new_state();
+        self.states[state_index][left].state = SortingStateEnum::COMPARE;
+        self.states[state_index][right].state = SortingStateEnum::COMPARE;
+        compare_func(self.current_state[left], self.current_state[right])
+    }
+
+    #[allow(dead_code)]
     pub fn get_initial_state(&self) -> &SortingState {
         &self.states[0]
     }
 
+    #[allow(dead_code)]
     pub fn get_final_state(&self) -> &SortingState {
         &self.states[self.states.len() - 1]
     }
 
+    #[allow(dead_code)]
     pub fn get_current_state(&self) -> &SortingState {
         &self.current_state
     }
@@ -95,26 +104,9 @@ impl SortModel {
     pub fn get_states(&self) -> &Vec<SortingState> {
         &self.states
     }
-    pub fn get_mut_states(&mut self) -> &mut Vec<SortingState> {
-        &mut self.states
-    }
 
     pub fn len(&self) -> usize {
         self.current_state.len()
-    }
-
-    pub fn left_is_greater(&mut self, left: usize, right: usize) -> bool {
-        let state_index = self.add_new_state();
-        self.states[state_index][left].state = SortingStateEnum::COMPARE;
-        self.states[state_index][right].state = SortingStateEnum::COMPARE;
-        self.current_state[left] > self.current_state[right]
-    }
-
-    pub fn left_is_greater_or_equal(&mut self, left: usize, right: usize) -> bool {
-        let state_index = self.add_new_state();
-        self.states[state_index][left].state = SortingStateEnum::COMPARE;
-        self.states[state_index][right].state = SortingStateEnum::COMPARE;
-        self.current_state[left] >= self.current_state[right]
     }
 
     pub fn swap(&mut self, left: usize, right: usize) {
@@ -130,15 +122,6 @@ impl SortModel {
         self.states[state_index][index].state = SortingStateEnum::SWAP;
     }
 
-    pub fn extend_states(&mut self, values: Vec<SortingState>) {
-        self.states.extend(values);
-    }
-
-    pub fn set_current_state(&mut self, state: SortingState) {
-        self.current_state = state
-    }
-
-
     fn add_new_state(&mut self) -> usize {
         self.states.push(
             self.current_state
@@ -148,38 +131,40 @@ impl SortModel {
         );
         let new_state_index = self.states.len() - 1;
 
-        if let Some(left) = self.left {
-            self.states[new_state_index][left].state = SortingStateEnum::LEFT;
-        }
-        if let Some(right) = self.right {
-            self.states[new_state_index][right].state = SortingStateEnum::RIGHT;
+        if let Some((left, right)) = self.boundaries {
+            for i in left..right + 1 {
+                self.states[new_state_index][i].state = SortingStateEnum::CHECKING;
+            }
         }
 
         self.states.len() - 1
     }
 
-    pub fn compare_index(&mut self, index: usize) {
-        let state_index = self.add_new_state();
-        self.states[state_index][index].state = SortingStateEnum::COMPARE;
+    pub fn set_boundaries(&mut self, left: usize, right: usize) {
+        self.boundaries = Some((left, right));
     }
 
-    pub fn set_left_right(&mut self, left: usize, right: usize) {
-        self.left = Some(left);
-        self.right = Some(right);
-    }
-
-    pub fn unset_left_right(&mut self) {
-        self.left = None;
-        self.right = None;
+    #[allow(dead_code)]
+    pub fn unset_boundaries(&mut self) {
+        self.boundaries = None;
     }
 
     pub fn complete(&mut self) {
         for i in 0..self.current_state.len() {
             let state_index = self.add_new_state();
             for j in 0..i + 1 {
-                self.states[state_index][j].state = SortingStateEnum::COMPLETE;
+                self.states[state_index][j].state = SortingStateEnum::COMPLETED;
             }
         }
     }
 }
+
+impl Index<usize> for SortModel {
+    type Output = SortingValue;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.current_state[index]
+    }
+}
+
 

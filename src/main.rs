@@ -1,16 +1,12 @@
-use std::cmp::Ordering;
 use std::fmt;
-use std::thread::sleep;
-use std::time::Duration;
+use std::slice::Iter;
 
-use nannou::glam::Vec2Swizzles;
 use nannou::prelude::*;
 use nannou::winit::event::VirtualKeyCode;
 use palette::named;
-use rand::prelude::SliceRandom;
-use rand::Rng;
 
 use crate::bubble_sort::BubbleSort;
+use crate::insertion_sort::InsertionSort;
 use crate::merge_sort::MergeSort;
 use crate::quicksort::QuickSort;
 use crate::sorting::{Sorter, SortingState};
@@ -18,6 +14,7 @@ use crate::sorting::{Sorter, SortingState};
 mod sorting;
 mod bubble_sort;
 mod merge_sort;
+mod insertion_sort;
 mod quicksort;
 mod utils;
 
@@ -36,10 +33,12 @@ const HELP_TEXT: &str = "
     Use the 'Q' key to quit.
 ";
 
+#[derive(Debug)]
 enum SortsEnum {
     BubbleSort,
     MergeSort,
     QuickSort,
+    InsertionSort,
 }
 
 
@@ -49,6 +48,7 @@ impl fmt::Display for SortsEnum {
             SortsEnum::BubbleSort => write!(f, "Bubble Sort"),
             SortsEnum::MergeSort => write!(f, "Merge Sort"),
             SortsEnum::QuickSort => write!(f, "Quick Sort"),
+            SortsEnum::InsertionSort => write!(f, "Insertion Sort"),
         }
     }
 }
@@ -58,15 +58,17 @@ impl SortsEnum {
         match self {
             SortsEnum::BubbleSort => SortsEnum::MergeSort,
             SortsEnum::MergeSort => SortsEnum::QuickSort,
-            SortsEnum::QuickSort => SortsEnum::BubbleSort,
+            SortsEnum::QuickSort => SortsEnum::InsertionSort,
+            SortsEnum::InsertionSort => SortsEnum::BubbleSort,
         }
     }
 
     fn get_prev(&self) -> SortsEnum {
         match self {
-            SortsEnum::BubbleSort => SortsEnum::QuickSort,
+            SortsEnum::BubbleSort => SortsEnum::InsertionSort,
             SortsEnum::MergeSort => SortsEnum::BubbleSort,
             SortsEnum::QuickSort => SortsEnum::MergeSort,
+            SortsEnum::InsertionSort => SortsEnum::QuickSort,
         }
     }
 
@@ -75,11 +77,18 @@ impl SortsEnum {
             SortsEnum::BubbleSort => Box::new(BubbleSort::new()),
             SortsEnum::MergeSort => Box::new(MergeSort::new()),
             SortsEnum::QuickSort => Box::new(QuickSort::new()),
+            SortsEnum::InsertionSort => Box::new(InsertionSort::new()),
         }
     }
 
+    // TODO change random to specific vector from initial, change like that only in R key
     fn get_sorted_states(&self, n: u32) -> Vec<SortingState> {
         self.get_sorter().sort(utils::shuffled_vec(n)).get_states().to_vec()
+    }
+
+    #[allow(dead_code)]
+    fn iter() -> Iter<'static, Self> {
+        [SortsEnum::BubbleSort, SortsEnum::InsertionSort, SortsEnum::QuickSort, SortsEnum::MergeSort].iter()
     }
 }
 
@@ -94,6 +103,17 @@ struct Model {
 }
 
 impl Model {
+    fn new() -> Self {
+        Model {
+            states: SortsEnum::BubbleSort.get_sorted_states(START_NUMBER),
+            selected_sort: SortsEnum::BubbleSort,
+            index: 0,
+            keep_rolling: false,
+            n: START_NUMBER,
+            show_help: false,
+        }
+    }
+
     fn change_sort(&mut self, sort_kind: SortsEnum, n: u32) {
         self.selected_sort = sort_kind;
         self.change_n(n);
@@ -188,20 +208,16 @@ fn event(_app: &App, model: &mut Model, event: WindowEvent) {
 
 
 fn model(app: &App) -> Model {
-    app.new_window().event(event).view(view).build().unwrap();
-
-    Model {
-        states: SortsEnum::BubbleSort.get_sorted_states(START_NUMBER),
-        selected_sort: SortsEnum::BubbleSort,
-        index: 0,
-        keep_rolling: false,
-        n: START_NUMBER,
-        show_help: false,
-    }
+    app.new_window()
+        .event(event)
+        .view(view)
+        .build()
+        .unwrap();
+    Model::new()
 }
 
 
-fn update(app: &App, model: &mut Model, _update: Update) {
+fn update(_app: &App, model: &mut Model, _update: Update) {
     if model.keep_rolling {
         if model.index + 1 < model.states.len() {
             model.index += 1;
@@ -210,15 +226,7 @@ fn update(app: &App, model: &mut Model, _update: Update) {
 }
 
 
-fn view(app: &App, model: &Model, frame: Frame) {
-    let draw = app.draw();
-    draw.background().color(named::ALICEBLUE);
-
-    let win: Rect<f32> = app.window_rect();
-
-    let width_of_rect: f32 = win.w() / model.n as f32;
-    let height_of_rect: f32 = (win.h() - (win.h() * 0.2)) / model.n as f32;
-
+fn draw_hood(draw: &Draw, win: Rect<f32>, model: &Model) {
     let hood = Rect::from_w_h(win.w(), win.h() * 0.18)
         .top_left_of(Rect::from(win));
     draw.rect().xy(hood.xy()).wh(hood.wh())
@@ -230,25 +238,28 @@ fn view(app: &App, model: &Model, frame: Frame) {
         .xy(hood.xy())
         .font_size(32)
         .color(named::WHITE);
+}
 
+fn draw_sorting_states(draw: &Draw, win: Rect<f32>, model: &Model) {
+    let width_of_rect: f32 = win.w() / model.n as f32;
+    let height_of_rect: f32 = (win.h() - (win.h() * 0.2)) / model.n as f32;
     for (i, val) in model.states[model.index].iter().enumerate() {
         let r = Rect::from_w_h(width_of_rect, height_of_rect * (val.value as f32))
             .bottom_left_of(Rect::from(win).shift_x(width_of_rect * i as f32))
             .pad(1.0);
-
-        // println!("{:#?} {:#?}", r, bottom_left_rect);
         draw.rect().xy(r.xy()).wh(r.wh()).color(
             match val.state {
                 sorting::SortingStateEnum::FREE => named::DARKGREY,
                 sorting::SortingStateEnum::COMPARE => named::LIGHTGREEN,
                 sorting::SortingStateEnum::SWAP => named::TOMATO,
-                sorting::SortingStateEnum::COMPLETE => named::LIGHTGREEN,
-                sorting::SortingStateEnum::LEFT => named::YELLOW,
-                sorting::SortingStateEnum::RIGHT => named::PURPLE,
+                sorting::SortingStateEnum::COMPLETED => named::GREEN,
+                sorting::SortingStateEnum::CHECKING => named::LIGHTBLUE,
             }
         );
     }
+}
 
+fn draw_help(draw: &Draw, win: Rect<f32>, model: &Model) {
     if model.show_help {
         let help = Rect::from_w_h(win.w() * 0.7, win.h() * 0.7);
         draw.rect().xy(help.xy()).wh(help.wh()).color(named::WHITE);
@@ -257,10 +268,86 @@ fn view(app: &App, model: &Model, frame: Frame) {
             .font_size(16)
             .color(named::BLACK);
     }
+}
+
+fn view(app: &App, model: &Model, frame: Frame) {
+    let draw = app.draw();
+    draw.background().color(named::ALICEBLUE);
+
+    let win: Rect<f32> = app.window_rect();
+
+    draw_hood(&draw, win, model);
+    draw_sorting_states(&draw, win, model);
+    draw_help(&draw, win, model);
 
     draw.to_frame(app, &frame).unwrap();
 }
 
 fn main() {
     nannou::app(model).update(update).run();
+}
+
+#[cfg(test)]
+pub mod tests {
+    use crate::*;
+    use crate::utils::*;
+
+    #[test]
+    fn unsorted_test() {
+        let to_sort_slice = vec![10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+
+        for sort in SortsEnum::iter() {
+            println!("Sorting: {}", sort);
+            let sorted_model = sort.get_sorter().sort(to_sort_slice.clone());
+            assert!(is_sorted(sorted_model.get_final_state()));
+        }
+    }
+
+    #[test]
+    fn sorted_test() {
+        let to_sort_slice = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+        for sort in SortsEnum::iter() {
+            println!("Sorting: {}", sort);
+            let sorted_model = sort.get_sorter().sort(to_sort_slice.clone());
+            assert!(is_sorted(sorted_model.get_final_state()));
+        }
+    }
+
+    #[test]
+    fn empty_test() {
+        let to_sort_slice = vec![];
+
+        for sort in SortsEnum::iter() {
+            println!("Sorting: {}", sort);
+            let sorted_model = sort.get_sorter().sort(to_sort_slice.clone());
+            assert_eq!(sorted_model.get_states().len(), 1);
+            assert_eq!(sorted_model.get_final_state().len(), 0);
+        }
+    }
+
+    #[test]
+    fn single_value_test() {
+        let to_sort_slice = vec![10];
+
+        for sort in SortsEnum::iter() {
+            println!("Sorting: {}", sort);
+            let sorted_model = sort.get_sorter().sort(to_sort_slice.clone());
+            assert_eq!(sorted_model.get_states().len(), 2);
+            assert_eq!(sorted_model.get_final_state().len(), 1);
+        }
+    }
+
+    #[test]
+    fn random_test() {
+        for _ in 0..10 {
+            let to_sort_slice = random_vec(30);
+
+            for sort in SortsEnum::iter() {
+                println!("Sorting: {}", sort);
+                let sorted_model = sort.get_sorter().sort(to_sort_slice.clone());
+                assert!(is_sorted(sorted_model.get_final_state()));
+            }
+        }
+    }
 }

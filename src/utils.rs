@@ -1,8 +1,7 @@
-use std::cmp::Ordering;
-
 use rand::prelude::SliceRandom;
 use rand::Rng;
 
+#[allow(dead_code)]
 pub fn random_vec(n: usize) -> Vec<u32> {
     let mut rng = rand::thread_rng();
     let mut v: Vec<u32> = Vec::with_capacity(n);
@@ -18,7 +17,7 @@ pub fn shuffled_vec(n: u32) -> Vec<u32> {
     vec
 }
 
-
+#[allow(dead_code)]
 pub fn is_sorted<T: Ord>(v: &Vec<T>) -> bool {
     if v.len() <= 1 {
         return true;
@@ -29,4 +28,28 @@ pub fn is_sorted<T: Ord>(v: &Vec<T>) -> bool {
         }
     }
     true
+}
+
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn is_sorted_test() {
+        assert_eq!(is_sorted(&vec![1, 2, 3, 4, 5]), true);
+        assert_eq!(is_sorted(&vec![5, 4, 3, 2, 1]), false);
+        assert_eq!(is_sorted(&vec![1, 1, 1, 1, 1]), true);
+        assert_eq!(is_sorted(&vec![1, 1, 1, 1, 2]), true);
+        assert_eq!(is_sorted(&vec![1, 1, 1, 2, 1]), false);
+        assert_eq!(is_sorted(&vec![1]), true);
+        assert_eq!(is_sorted::<u32>(&vec![]), true);
+    }
+
+    #[test]
+    fn random_vec_test() {
+        let v = random_vec(10);
+        assert_eq!(v.len(), 10);
+        assert_ne!(random_vec(10), random_vec(10));
+    }
 }
