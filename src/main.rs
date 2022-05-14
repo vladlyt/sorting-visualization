@@ -81,6 +81,10 @@ impl SortsEnum {
         }
     }
 
+    // TODO refactor this file to be more pretty, split maybe into some files
+    // TODO add README with video or gif
+    // TODO add other sorting algorithms
+
     // TODO change random to specific vector from initial, change like that only in R key
     fn get_sorted_states(&self, n: u32) -> Vec<SortingState> {
         self.get_sorter().sort(utils::shuffled_vec(n)).get_states().to_vec()
