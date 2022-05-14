@@ -5,9 +5,12 @@ pub enum SortingStateEnum {
     FREE,
     COMPARE,
     SWAP,
+    COMPLETE,
     LEFT,
     RIGHT,
 }
+
+pub type SortingState = Vec<SortingValue>;
 
 #[derive(Clone, Copy)]
 pub struct SortingValue {
@@ -44,49 +47,77 @@ impl SortingValue {
     }
 }
 
-pub type SortingState = Vec<SortingValue>;
-
 pub trait Sorter {
-    fn sort(&mut self) -> &mut Vec<SortingState>;
+    fn sort(&mut self, values: Vec<u32>) -> SortModel;
 }
 
+
 pub struct SortModel {
-    pub current_state: SortingState,
-    pub states: Vec<SortingState>,
-    pub left: Option<usize>,
-    pub right: Option<usize>,
+    current_state: SortingState,
+    states: Vec<SortingState>,
+    left: Option<usize>,
+    right: Option<usize>,
 }
 
 impl SortModel {
-    pub fn new(v: Vec<u32>) -> Self {
-        let current_state = v
-            .iter()
-            .map(|value| SortingValue::new(*value))
+    pub fn new(values: Vec<u32>) -> Self {
+        let current_state = values
+            .clone()
+            .into_iter()
+            .map(|value| SortingValue::new(value))
+            .collect();
+
+        let current_state2 = values
+            .into_iter()
+            .map(|value| SortingValue::new(value))
             .collect();
 
         Self {
             current_state,
-            states: Vec::new(),
+            states: vec![current_state2],
             left: None,
             right: None,
         }
     }
 
-    pub fn value_is_greater(&mut self, left: usize, right: usize) -> bool {
+    pub fn get_initial_state(&self) -> &SortingState {
+        &self.states[0]
+    }
+
+    pub fn get_final_state(&self) -> &SortingState {
+        &self.states[self.states.len() - 1]
+    }
+
+    pub fn get_current_state(&self) -> &SortingState {
+        &self.current_state
+    }
+
+    pub fn get_states(&self) -> &Vec<SortingState> {
+        &self.states
+    }
+    pub fn get_mut_states(&mut self) -> &mut Vec<SortingState> {
+        &mut self.states
+    }
+
+    pub fn len(&self) -> usize {
+        self.current_state.len()
+    }
+
+    pub fn left_is_greater(&mut self, left: usize, right: usize) -> bool {
         let state_index = self.add_new_state();
         self.states[state_index][left].state = SortingStateEnum::COMPARE;
         self.states[state_index][right].state = SortingStateEnum::COMPARE;
         self.current_state[left] > self.current_state[right]
     }
 
-    pub fn value_is_greater_or_equal(&mut self, left: usize, right: usize) -> bool {
+    pub fn left_is_greater_or_equal(&mut self, left: usize, right: usize) -> bool {
         let state_index = self.add_new_state();
         self.states[state_index][left].state = SortingStateEnum::COMPARE;
         self.states[state_index][right].state = SortingStateEnum::COMPARE;
         self.current_state[left] >= self.current_state[right]
     }
 
-    pub fn swap_values(&mut self, left: usize, right: usize) {
+    pub fn swap(&mut self, left: usize, right: usize) {
         self.current_state.swap(left, right);
         let state_index = self.add_new_state();
         self.states[state_index][left].state = SortingStateEnum::SWAP;
@@ -97,6 +128,14 @@ impl SortModel {
         self.current_state[index] = value;
         let state_index = self.add_new_state();
         self.states[state_index][index].state = SortingStateEnum::SWAP;
+    }
+
+    pub fn extend_states(&mut self, values: Vec<SortingState>) {
+        self.states.extend(values);
+    }
+
+    pub fn set_current_state(&mut self, state: SortingState) {
+        self.current_state = state
     }
 
 
@@ -138,7 +177,7 @@ impl SortModel {
         for i in 0..self.current_state.len() {
             let state_index = self.add_new_state();
             for j in 0..i + 1 {
-                self.states[state_index][j].state = SortingStateEnum::COMPARE;
+                self.states[state_index][j].state = SortingStateEnum::COMPLETE;
             }
         }
     }

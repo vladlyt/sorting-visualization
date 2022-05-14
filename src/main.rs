@@ -34,7 +34,7 @@ const HELP_TEXT: &str = "
     Use the 'R' key regenerate numbers in array.\n
     Use the 'H' key to toggle this help text.\n
     Use the 'Q' key to quit.
-    ";
+";
 
 enum SortsEnum {
     BubbleSort,
@@ -70,12 +70,16 @@ impl SortsEnum {
         }
     }
 
-    fn get_sorted_states(&self, n: u32) -> Vec<SortingState> {
+    fn get_sorter(&self) -> Box<dyn Sorter> {
         match self {
-            SortsEnum::BubbleSort => { BubbleSort::new(utils::shuffled_vec(n)).sort().to_vec() }
-            SortsEnum::MergeSort => { MergeSort::new(utils::shuffled_vec(n)).sort().to_vec() }
-            SortsEnum::QuickSort => { QuickSort::new(utils::shuffled_vec(n)).sort().to_vec() }
+            SortsEnum::BubbleSort => Box::new(BubbleSort::new()),
+            SortsEnum::MergeSort => Box::new(MergeSort::new()),
+            SortsEnum::QuickSort => Box::new(QuickSort::new()),
         }
+    }
+
+    fn get_sorted_states(&self, n: u32) -> Vec<SortingState> {
+        self.get_sorter().sort(utils::shuffled_vec(n)).get_states().to_vec()
     }
 }
 
@@ -105,9 +109,9 @@ impl Model {
 
 
 fn event(_app: &App, model: &mut Model, event: WindowEvent) {
-    println!("{:?}", event);
     match event {
         KeyPressed(_key) => {
+            println!("{:?}", event);
             match _key {
                 VirtualKeyCode::Right => {
                     if model.index + 1 < model.states.len() {
@@ -238,6 +242,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
                 sorting::SortingStateEnum::FREE => named::DARKGREY,
                 sorting::SortingStateEnum::COMPARE => named::LIGHTGREEN,
                 sorting::SortingStateEnum::SWAP => named::TOMATO,
+                sorting::SortingStateEnum::COMPLETE => named::LIGHTGREEN,
                 sorting::SortingStateEnum::LEFT => named::YELLOW,
                 sorting::SortingStateEnum::RIGHT => named::PURPLE,
             }
