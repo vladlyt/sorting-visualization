@@ -1,6 +1,8 @@
 use rand::prelude::SliceRandom;
 use rand::Rng;
 
+use crate::sorting::{SortingState, SortingValue};
+
 #[allow(dead_code)]
 pub fn random_vec(n: usize) -> Vec<u32> {
     let mut rng = rand::thread_rng();
@@ -11,11 +13,12 @@ pub fn random_vec(n: usize) -> Vec<u32> {
     v
 }
 
-pub fn shuffled_vec(n: u32) -> Vec<u32> {
-    let mut vec: Vec<u32> = (1..(n + 1)).collect();
+pub fn shuffled_sorting_state(n: u32) -> SortingState {
+    let mut vec: SortingState = (1..(n + 1)).map(|value| SortingValue::new(value)).collect();
     vec.shuffle(&mut rand::thread_rng());
     vec
 }
+
 
 #[allow(dead_code)]
 pub fn is_sorted<T: Ord>(v: &Vec<T>) -> bool {

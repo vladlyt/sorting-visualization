@@ -21,7 +21,7 @@ impl QuickSort {
             }
         }
         sorter.swap(i, high);
-        // sorter.unset_boundaries();
+        sorter.unset_boundaries();
         i
     }
 

@@ -144,7 +144,6 @@ impl SortModel {
         self.boundaries = Some((left, right));
     }
 
-    #[allow(dead_code)]
     pub fn unset_boundaries(&mut self) {
         self.boundaries = None;
     }
