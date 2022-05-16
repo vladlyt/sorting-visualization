@@ -14,3 +14,4 @@ name = "main"
 rand = "0.8.4"
 nannou = "0.17"
 palette = "0.5"
+sorts = { path = "sorts" }

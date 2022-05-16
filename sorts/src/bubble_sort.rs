@@ -1,4 +1,4 @@
-use crate::sorting::{Sorter, SortModel};
+use crate::{SortModel, Sorter};
 
 pub struct BubbleSort {}
 

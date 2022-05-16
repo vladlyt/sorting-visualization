@@ -51,7 +51,6 @@ pub trait Sorter {
     fn sort(&mut self, values: Vec<u32>) -> SortModel;
 }
 
-
 pub struct SortModel {
     current_state: SortingState,
     states: Vec<SortingState>,
@@ -79,7 +78,9 @@ impl SortModel {
     }
 
     pub fn compare<F>(&mut self, left: usize, right: usize, compare_func: F) -> bool
-        where F: Fn(SortingValue, SortingValue) -> bool {
+    where
+        F: Fn(SortingValue, SortingValue) -> bool,
+    {
         let state_index = self.add_new_state();
         self.states[state_index][left].state = SortingStateEnum::COMPARE;
         self.states[state_index][right].state = SortingStateEnum::COMPARE;
@@ -127,7 +128,7 @@ impl SortModel {
             self.current_state
                 .iter()
                 .map(|v| SortingValue::new(v.value))
-                .collect()
+                .collect(),
         );
         let new_state_index = self.states.len() - 1;
 
@@ -165,5 +166,3 @@ impl Index<usize> for SortModel {
         &self.current_state[index]
     }
 }
-
-

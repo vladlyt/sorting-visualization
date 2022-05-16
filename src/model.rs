@@ -1,7 +1,7 @@
-use crate::settings::*;
 use crate::controller::SortsEnum;
-use crate::sorting::{SortingState, SortModel};
+use crate::settings::*;
 use crate::utils;
+use sorts::{SortModel, SortingState};
 
 pub struct Model {
     pub sorter: SortModel,
@@ -13,16 +13,12 @@ pub struct Model {
 }
 
 impl Model {
-
     pub fn default() -> Self {
         Model::new(&SortsEnum::BubbleSort)
     }
 
     pub fn new(sort_kind: &SortsEnum) -> Self {
-        Model::from_values(
-            &sort_kind,
-            &utils::shuffled_sorting_state(START_NUMBER),
-        )
+        Model::from_values(&sort_kind, &utils::shuffled_sorting_state(START_NUMBER))
     }
 
     pub fn from_values(sort_kind: &SortsEnum, states: &SortingState) -> Self {
@@ -37,16 +33,10 @@ impl Model {
     }
 
     pub fn change_selected_sort(&mut self, sort_kind: &SortsEnum) {
-        *self = Model::from_values(
-            &sort_kind,
-            &self.sorter.get_states()[self.index],
-        );
+        *self = Model::from_values(&sort_kind, &self.sorter.get_states()[self.index]);
     }
 
     pub fn change_n(&mut self, n: u32) {
-        *self = Model::from_values(
-            &self.selected_sort,
-            &utils::shuffled_sorting_state(n),
-        );
+        *self = Model::from_values(&self.selected_sort, &utils::shuffled_sorting_state(n));
     }
 }

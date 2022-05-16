@@ -1,4 +1,4 @@
-use crate::sorting::{SortModel, Sorter};
+use crate::{SortModel, Sorter};
 
 pub struct MergeSort {}
 
@@ -35,7 +35,6 @@ impl MergeSort {
         }
     }
 
-
     fn merge_sort(&self, sorter: &mut SortModel, left: usize, right: usize) {
         if left >= right {
             return;
@@ -61,4 +60,3 @@ impl Sorter for MergeSort {
         sorter
     }
 }
-

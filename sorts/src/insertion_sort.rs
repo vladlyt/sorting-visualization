@@ -1,4 +1,4 @@
-use crate::sorting::{SortModel, Sorter};
+use crate::{SortModel, Sorter};
 
 pub struct InsertionSort {}
 

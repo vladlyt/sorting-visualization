@@ -1,7 +1,7 @@
 use rand::prelude::SliceRandom;
 use rand::Rng;
 
-use crate::sorting::{SortingState, SortingValue};
+use sorts::{SortingState, SortingValue};
 
 #[allow(dead_code)]
 pub fn random_vec(n: usize) -> Vec<u32> {
@@ -19,7 +19,6 @@ pub fn shuffled_sorting_state(n: u32) -> SortingState {
     vec
 }
 
-
 #[allow(dead_code)]
 pub fn is_sorted<T: Ord>(v: &Vec<T>) -> bool {
     if v.len() <= 1 {
@@ -32,7 +31,6 @@ pub fn is_sorted<T: Ord>(v: &Vec<T>) -> bool {
     }
     true
 }
-
 
 #[cfg(test)]
 pub mod tests {

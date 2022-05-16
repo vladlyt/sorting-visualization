@@ -4,14 +4,10 @@ use std::slice::Iter;
 use nannou::prelude::*;
 use nannou::winit::event::VirtualKeyCode;
 
-use crate::bubble_sort::BubbleSort;
-use crate::insertion_sort::InsertionSort;
-use crate::merge_sort::MergeSort;
 use crate::model::Model;
-use crate::quicksort::QuickSort;
 use crate::settings::*;
-use crate::sorting::{Sorter, SortingState, SortModel};
-
+use sorts::MergeSort;
+use sorts::{BubbleSort, InsertionSort, QuickSort, SortModel, Sorter, SortingState};
 
 #[derive(Debug, Copy, Clone)]
 pub enum SortsEnum {
@@ -20,7 +16,6 @@ pub enum SortsEnum {
     QuickSort,
     InsertionSort,
 }
-
 
 impl fmt::Display for SortsEnum {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -62,7 +57,8 @@ impl SortsEnum {
     }
 
     pub fn get_sorter_from_state(&self, state: &SortingState) -> SortModel {
-        self.get_sorter().sort(state.into_iter().map(|x| x.value).collect())
+        self.get_sorter()
+            .sort(state.into_iter().map(|x| x.value).collect())
     }
 
     #[allow(dead_code)]
@@ -72,7 +68,8 @@ impl SortsEnum {
             SortsEnum::InsertionSort,
             SortsEnum::QuickSort,
             SortsEnum::MergeSort,
-        ].iter()
+        ]
+        .iter()
     }
 }
 
@@ -131,7 +128,8 @@ pub fn event(_app: &App, model: &mut Model, event: WindowEvent) {
                         model.sorter.get_states()[model.index]
                             .iter()
                             .map(|x| x.value)
-                            .collect::<Vec<u32>>());
+                            .collect::<Vec<u32>>()
+                    );
                 }
                 _ => {}
             }

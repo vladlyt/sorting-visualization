@@ -1,4 +1,4 @@
-use crate::sorting::{Sorter, SortModel};
+use crate::{SortModel, Sorter};
 
 pub struct QuickSort {}
 
@@ -25,16 +25,16 @@ impl QuickSort {
         i
     }
 
-    fn quicksort(&self, sorter: &mut SortModel, low: usize, high: usize) {
+    fn quick_sort(&self, sorter: &mut SortModel, low: usize, high: usize) {
         if low >= high {
             return;
         }
 
         let partition_index = self.partition(sorter, low, high);
         if partition_index > 0 {
-            self.quicksort(sorter, low, partition_index - 1);
+            self.quick_sort(sorter, low, partition_index - 1);
         }
-        self.quicksort(sorter, partition_index + 1, high);
+        self.quick_sort(sorter, partition_index + 1, high);
     }
 }
 
@@ -44,11 +44,10 @@ impl Sorter for QuickSort {
 
         let len = sorter.len();
         if len > 1 {
-            self.quicksort(&mut sorter, 0, len - 1);
+            self.quick_sort(&mut sorter, 0, len - 1);
         }
         sorter.complete();
 
         sorter
     }
 }
-
