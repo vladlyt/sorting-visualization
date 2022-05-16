@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::ops::Index;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum SortingStateEnum {
     FREE,
     COMPARE,
@@ -12,7 +12,7 @@ pub enum SortingStateEnum {
 
 pub type SortingState = Vec<SortingValue>;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct SortingValue {
     pub value: u32,
     pub state: SortingStateEnum,

@@ -12,6 +12,7 @@ use crate::quicksort::QuickSort;
 use crate::settings::*;
 use crate::sorting::{Sorter, SortingState, SortModel};
 
+
 #[derive(Debug, Copy, Clone)]
 pub enum SortsEnum {
     BubbleSort,
@@ -123,6 +124,14 @@ pub fn event(_app: &App, model: &mut Model, event: WindowEvent) {
                 }
                 VirtualKeyCode::Q => {
                     std::process::exit(0);
+                }
+                VirtualKeyCode::D => {
+                    println!(
+                        "{:?}",
+                        model.sorter.get_states()[model.index]
+                            .iter()
+                            .map(|x| x.value)
+                            .collect::<Vec<u32>>());
                 }
                 _ => {}
             }
