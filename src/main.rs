@@ -32,7 +32,7 @@ fn model(app: &App) -> Model {
 
 fn update(_app: &App, model: &mut Model, _update: Update) {
     if model.keep_rolling {
-        if model.index + 1 < model.sorter.len() {
+        if model.index + 1 < model.sorter.get_states().len() {
             model.index += 1;
         }
     }
