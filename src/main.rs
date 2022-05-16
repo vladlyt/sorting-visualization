@@ -10,10 +10,6 @@ mod settings;
 mod utils;
 mod view;
 
-// TODO add README with gif
-// TODO add built binary to github
-// TODO add other sorting algorithms
-
 fn model(app: &App) -> Model {
     app.new_window()
         .event(event_fn)
